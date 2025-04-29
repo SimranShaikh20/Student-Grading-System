@@ -1,0 +1,63 @@
+﻿@page "/submissions/create"
+@using Microsoft.EntityFrameworkCore
+@using Project.Models
+@inject IDbContextFactory<Project.Data.ProjectContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Submission</PageTitle>
+
+<h1 class="text-center my-4">Create</h1>
+
+<hr />
+<div class="d-flex justify-content-center">
+    <div class="col-md-6 border rounded p-4">
+        <EditForm method="post" Model="Submission" OnValidSubmit="AddSubmission" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert" />
+            <div class="mb-3">
+                <label for="subjectname" class="form-label">SubjectName:</label>
+                <InputText id="subjectname" @bind-Value="Submission.SubjectName" class="form-control" aria-required="true" />
+                <ValidationMessage For="() => Submission.SubjectName" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="submissionlink" class="form-label">SubmissionLink:</label>
+                <InputText id="submissionlink" @bind-Value="Submission.SubmissionLink" class="form-control" aria-required="true" />
+                <ValidationMessage For="() => Submission.SubmissionLink" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="submittedat" class="form-label">SubmittedAt:</label>
+                <InputDate id="submittedat" @bind-Value="Submission.SubmittedAt" class="form-control" />
+                <ValidationMessage For="() => Submission.SubmittedAt" class="text-danger" />
+            </div>
+            <button type="submit" class="btn btn-primary">Create</button>
+        </EditForm>
+
+        @if (!string.IsNullOrEmpty(SuccessMessage))
+        {
+            <div class="alert alert-success mt-3" role="alert">
+                @SuccessMessage
+            </div>
+        }
+    </div>
+</div>
+
+
+<div class="text-center mt-3">
+    <a href="/assignments/create" class="btn btn-outline-secondary">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private Submission Submission { get; set; } = new();
+
+    private string SuccessMessage { get; set; } = string.Empty;
+
+    private async Task AddSubmission()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Submission.Add(Submission);
+        await context.SaveChangesAsync();
+        SuccessMessage = "Submission has been successfully created!";
+        Submission = new Submission(); // clear the form after adding
+    }
+}

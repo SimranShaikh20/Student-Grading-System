@@ -4,76 +4,171 @@
 @inject IDbContextFactory<Project.Data.ProjectContext> DbFactory
 @inject NavigationManager NavigationManager
 
-<PageTitle>Create</PageTitle>
+<PageTitle>Create Register</PageTitle>
 
-<h1 class="text-center">Registration</h1>
+<style>
+    body {
+        background: linear-gradient(to right, #1a1a2e, #16213e);
+        color: #e0e0e0;
+        font-family: 'Poppins', sans-serif;
+    }
 
+    .card-custom {
+        background: rgba(0, 0, 50, 0.8);
+        backdrop-filter: blur(12px);
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(0, 0, 50, 0.6);
+        width: 40rem;
+    }
 
+    .form-control {
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        border: 1px solid #1abc9c;
+    }
+
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+    .btn-primary {
+        background-color: #0074e4;
+        border: none;
+        transition: 0.3s ease-in-out;
+        padding: 10px 20px;
+    }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+            box-shadow: 0 0 10px #0074e4;
+        }
+
+    .btn-outline-secondary {
+        color: #ccc;
+        border: 1px solid #ccc;
+        transition: 0.3s ease-in-out;
+    }
+
+        .btn-outline-secondary:hover {
+            color: white;
+            background-color: #444;
+        }
+
+    .alert-custom {
+        background-color: rgba(0, 150, 255, 0.2);
+        color: #fff;
+        border-radius: 10px;
+    }
+
+    h1 {
+        color: #00a8ff;
+        font-weight: bold;
+    }
+</style>
+
+<h1 class="text-center mt-3"><i class="bi bi-person-circle"></i> Registration</h1>
 
 <div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
-    <div class="card shadow-lg p-4 border-primary" style="width: 40rem;">
+    <div class="card card-custom">
         <div class="card-body">
             <EditForm method="post" Model="Register" OnValidSubmit="AddRegister" FormName="create" Enhance>
                 <DataAnnotationsValidator />
                 <ValidationSummary class="text-danger" role="alert" />
-                
+
                 <div class="mb-3">
                     <label for="full_name" class="form-label">Full Name:</label>
-                    <InputText id="full_name" @bind-Value="Register.full_name" class="form-control" />
+                    <InputText id="full_name" @bind-Value="Register.full_name" class="form-control" placeholder="Enter full name" />
                     <ValidationMessage For="() => Register.full_name" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="PasswordHash" class="form-label">Password:</label>
+                    <InputText id="PasswordHash" @bind-Value="Register.PasswordHash" class="form-control" placeholder="Enter password" type="password" />
+                    <ValidationMessage For="() => Register.PasswordHash" class="text-danger" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="confirmPassword" class="form-label">Confirm Password:</label>
+                    <InputText id="confirmPassword" @bind-Value="ConfirmPassword" class="form-control" placeholder="Confirm password" type="password" />
+                    <ValidationMessage For="() => ConfirmPassword" class="text-danger" />
                 </div>
 
                 <div class="mb-3">
                     <label for="sem" class="form-label">Semester:</label>
-                    <InputNumber id="sem" @bind-Value="Register.sem" class="form-control" />
+                    <InputNumber id="sem" @bind-Value="Register.sem" class="form-control" placeholder="Enter semester" />
                     <ValidationMessage For="() => Register.sem" class="text-danger" />
                 </div>
 
                 <div class="mb-3">
                     <label for="year" class="form-label">Year:</label>
-                    <InputNumber id="year" @bind-Value="Register.year" class="form-control" />
+                    <InputNumber id="year" @bind-Value="Register.year" class="form-control" placeholder="Enter year" />
                     <ValidationMessage For="() => Register.year" class="text-danger" />
                 </div>
 
                 <div class="mb-3">
                     <label for="dep" class="form-label">Department:</label>
-                    <InputText id="dep" @bind-Value="Register.dep" class="form-control" />
+                    <InputText id="dep" @bind-Value="Register.dep" class="form-control" placeholder="Enter department" />
                     <ValidationMessage For="() => Register.dep" class="text-danger" />
                 </div>
 
                 <div class="mb-3">
                     <label for="contact_no" class="form-label">Contact No:</label>
-                    <InputNumber id="contact_no" @bind-Value="Register.contact_no" class="form-control" />
+                    <InputNumber id="contact_no" @bind-Value="Register.contact_no" class="form-control" placeholder="Enter contact number" />
                     <ValidationMessage For="() => Register.contact_no" class="text-danger" />
                 </div>
 
                 <div class="mb-3">
                     <label for="email" class="form-label">Email:</label>
-                    <InputText id="email" @bind-Value="Register.email" class="form-control" />
+                    <InputText id="email" @bind-Value="Register.email" class="form-control" placeholder="Enter email" />
                     <ValidationMessage For="() => Register.email" class="text-danger" />
                 </div>
-
-                <div class="d-flex justify-content-center">
-                    <button type="submit" class="btn btn-primary px-4">Create</button>
+                <div class="mb-3">
+                    <label for="role" class="form-label">Role:</label>
+                    <InputText id="role" @bind-Value="Register.role" class="form-control" />
+                    <ValidationMessage For="() => Register.role" class="text-danger" />
+                </div>
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Create</button>
+                    <a href="/student/dashboard" class="btn btn-outline-secondary ms-2"><i class="bi bi-arrow-left-circle"></i> Back to List</a>
                 </div>
             </EditForm>
+
+            @if (!string.IsNullOrEmpty(SuccessMessage))
+            {
+                <div class="alert alert-custom mt-3 text-center">
+                    <i class="bi bi-check-circle"></i> @SuccessMessage
+                </div>
+            }
         </div>
     </div>
-</div>
-
-<div class="text-center mt-3">
-    <a href="/home" class="btn btn-outline-secondary">Back to List</a>
 </div>
 
 @code {
     [SupplyParameterFromForm]
     private Register Register { get; set; } = new();
+    private string SuccessMessage { get; set; } = string.Empty;
+    private string Password { get; set; } = string.Empty;
+    private string ConfirmPassword { get; set; } = string.Empty;
+    private string ErrorMessage { get; set; } = string.Empty;  // for showing password mismatch error
 
     private async Task AddRegister()
     {
+        ErrorMessage = string.Empty; // clear previous errors
+
+       
         using var context = DbFactory.CreateDbContext();
+
+        // Storing the plain password into PasswordHash field
+        Register.PasswordHash = Password; // <-- storing plain password in PasswordHash
+
         context.Register.Add(Register);
         await context.SaveChangesAsync();
-        NavigationManager.NavigateTo("/registers");
+
+        SuccessMessage = "Registration successful!";
+        Register = new Register(); // Reset form
+        Password = string.Empty;
+        ConfirmPassword = string.Empty;
     }
+
 }

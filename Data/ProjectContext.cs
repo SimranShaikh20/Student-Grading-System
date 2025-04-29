@@ -14,7 +14,14 @@ namespace Project.Data
         {
         }
 
-        public DbSet<Project.Models.Login> Login { get; set; } = default!;
+       
         public DbSet<Project.Models.Register> Register { get; set; } = default!;
+        public DbSet<Project.Models.FacultyRegistration> FacultyRegistration { get; set; } = default!;
+        public DbSet<Project.Models.Assignment> Assignments { get; set; } = default;
+
+        public DbSet<Project.Models.StudentAssShow> StudentAssShow { get; set; } = default;
+        public DbSet<Project.Models.Submission> Submission{ get; set; } = default;
+        public DbSet<Project.Models.LoginData> LoginData { get; set; } = default!;
+
     }
 }

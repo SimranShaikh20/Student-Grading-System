@@ -1,0 +1,77 @@
+﻿@page "/submit"
+@using Project.Models
+@using Project.Data
+@using Microsoft.AspNetCore.Components.Authorization
+@inject ProjectContext context
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<style>
+    /* [Your Existing CSS Here] */
+</style>
+
+<div class="submit-container">
+    <div class="card-custom">
+        <h3>Submit Assignment</h3>
+
+        <EditForm Model="@submission" OnValidSubmit="HandleValidSubmit" FormName="create" Enhance   >
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="form-group">
+                <label for="subject">Subject Name:</label>
+                <InputText id="subject" class="form-control" @bind-Value="submission.SubjectName" />
+            </div>
+
+            <div class="form-group">
+                <label for="link">Submission Link:</label>
+                <InputText id="link" class="form-control" @bind-Value="submission.SubmissionLink" />
+            </div>
+
+            <button type="submit" class="btn btn-primary mt-3">Submit</button>
+        </EditForm>
+
+        @if (showSuccess)
+        {
+            <div class="alert alert-success mt-3">
+                Submission successful! Submitted at @submission.SubmittedAt.ToString("g")
+            </div>
+        }
+    </div>
+</div>
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@using System.Security.Claims
+
+@code {
+    private Submission submission = new();
+    private bool showSuccess = false;
+
+    private async Task HandleValidSubmit()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity != null && user.Identity.IsAuthenticated)
+        {
+            var email = user.FindFirst(c => c.Type == ClaimTypes.Email)?.Value;
+            submission.SubmittedBy = email ?? user.Identity.Name;
+            // You can also get emails or claims if needed
+        }
+        else
+        {
+            submission.SubmittedBy = "Anonymous"; // Or handle it differently
+        }
+
+        submission.SubmittedAt = DateTime.Now;
+
+        context.Submission.Add(submission);
+        await context.SaveChangesAsync();
+
+        showSuccess = true;
+
+        // Reset the form after 2 seconds
+        await Task.Delay(2000);
+        submission = new();
+        showSuccess = false;
+        StateHasChanged();
+    }
+}

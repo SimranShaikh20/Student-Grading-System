@@ -1,0 +1,213 @@
+﻿@page "/logindata/create"
+@using Microsoft.EntityFrameworkCore
+@using Project.Models
+@inject IDbContextFactory<Project.Data.ProjectContext> DbFactory
+@inject NavigationManager NavigationManager
+@inject Project.Components.Services.CurrentUserServies CurrentUserServices
+<style>
+    body {
+        background: linear-gradient(to right, #1a1a2e, #16213e); /* Gradient background */
+        color: #e0e0e0; /* Light text color */
+        font-family: 'Poppins', sans-serif; /* Poppins font */
+        margin: 0;
+        padding: 0;
+    }
+
+    .card-custom {
+        background: rgba(0, 0, 50, 0.8); /* Dark card background */
+        backdrop-filter: blur(12px); /* Apply blur effect */
+        border-radius: 15px; /* Rounded corners for the card */
+        padding: 25px; /* Padding inside the card */
+        box-shadow: 0 4px 15px rgba(0, 0, 50, 0.6); /* Card shadow */
+        width: 40rem; /* Fixed width */
+    }
+
+    .form-control {
+        border-radius: 10px; /* Rounded corners for inputs */
+        background: rgba(255, 255, 255, 0.1); /* Light background */
+        color: white; /* White text inside inputs */
+        border: 1px solid #1abc9c; /* Green border */
+    }
+
+        .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.5); /* Placeholder color */
+        }
+
+    .btn-primary {
+        background-color: #0074e4; /* Blue button */
+        border: none; /* Remove border */
+        transition: 0.3s ease-in-out; /* Smooth transition */
+        padding: 10px 20px; /* Button padding */
+    }
+
+        .btn-primary:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+            box-shadow: 0 0 10px #0074e4; /* Shadow effect on hover */
+        }
+
+    h1 {
+        color: #00a8ff;
+        font-weight: bold;
+        margin-bottom: 0; /* Removes margin below the heading */
+        padding-bottom: 0; /* Optional: removes padding if there is any */
+    }
+
+    .login-container {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start; /* Align the form to the top */
+        height: 100vh; /* Full viewport height */
+        padding-top: 50px; /* Space from the top */
+        padding: 0; /* Remove extra padding */
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box; /* Ensure consistent box sizing */
+    }
+
+    .btn-outline-secondary {
+        color: #ccc; /* Secondary button color */
+        border: 1px solid #ccc; /* Border color */
+        transition: 0.3s ease-in-out; /* Smooth transition */
+    }
+
+        .btn-outline-secondary:hover {
+            color: white; /* Text color on hover */
+            background-color: #444; /* Background color on hover */
+        }
+
+    .alert-custom {
+        background-color: rgba(0, 150, 255, 0.2); /* Custom alert background */
+        color: #fff; /* White text in alert */
+        border-radius: 10px; /* Rounded corners */
+    }
+
+    h1 {
+        color: #00a8ff; /* Blue color for the heading */
+        font-weight: bold; /* Bold font */
+    }
+
+    /* Center the form and give it a max-width */
+    .login-form {
+        width: 100%;
+        max-width: 400px; /* Max width for the form */
+    }
+
+    h1 {
+        margin-bottom: 10px; /* Reduce margin below the heading */
+    }
+
+</style>
+
+<PageTitle>Login</PageTitle>
+
+<h1 class="text-center">Login</h1>
+<hr />
+<div class="login-container">
+    <div class="card card-custom login-form form-border">
+        <div class="card-body">
+            <EditForm Model="LoginData" OnValidSubmit="AddLoginData" FormName="create">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="text-danger" role="alert" />
+
+                <!-- Form Fields -->
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email:</label>
+                    <InputText id="email" @bind-Value="LoginData.email" class="form-control" />
+                    <ValidationMessage For="() => LoginData.email" class="text-danger" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password:</label>
+                    <InputText id="password" @bind-Value="LoginData.password" type="password" class="form-control" />
+                    <ValidationMessage For="() => LoginData.password" class="text-danger" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="role" class="form-label">Role:</label>
+                    <InputText id="role" @bind-Value="LoginData.role" class="form-control" />
+                    <ValidationMessage For="() => LoginData.role" class="text-danger" />
+                </div>
+
+                <button type="submit" class="btn btn-primary">Login</button>
+
+                <button type="button" class="btn btn-primary" onclick="window.location.href='/'">Don't want to register?</button>
+
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+
+
+@code {
+    [SupplyParameterFromForm]
+    private LoginData LoginData { get; set; } = new();
+
+    private async Task AddLoginData()
+    {
+        using var context = DbFactory.CreateDbContext();
+
+        if (string.IsNullOrWhiteSpace(LoginData.email) || string.IsNullOrWhiteSpace(LoginData.password))
+        {
+            Console.WriteLine("Email or Password is empty!");
+            return;
+        }
+
+        Console.WriteLine($"Trying login with email: {LoginData.email} and role: {LoginData.role}");
+
+        var allUsers = await context.LoginData.ToListAsync();
+
+        foreach (var user in allUsers)
+        {
+            Console.WriteLine($"User in DB -> Email: {user.email} | Role: {user.role}");
+        }
+
+        var emailToSearch = LoginData.email.Trim().ToLower();
+        var roleToSearch = LoginData.role.Trim().ToLower();
+
+        var existingUser = allUsers
+            .Where(u => u.email.Trim().ToLower() == emailToSearch
+                     && u.role.Trim().ToLower() == roleToSearch)
+            .FirstOrDefault();
+
+        if (existingUser == null)
+        {
+            Console.WriteLine("No matching user found. Redirecting to Register page.");
+
+            if (roleToSearch == "faculty")
+            {
+                NavigationManager.NavigateTo("/facultyregistrations/create");
+            }
+            else
+            {
+                NavigationManager.NavigateTo("/registers/create"); // Student register page
+            }
+            return;
+        }
+
+        if (existingUser.password != LoginData.password)
+        {
+            Console.WriteLine("Password mismatch!");
+            return;
+        }
+
+        Console.WriteLine("User found. Logging in...");
+
+        CurrentUserServices.Email = existingUser.email;
+        CurrentUserServices.Role = existingUser.role;
+        CurrentUserServices.IsLoggedIn = true;
+
+        if (roleToSearch == "faculty")
+        {
+            NavigationManager.NavigateTo("/faculty/dashboard");
+        }
+        else
+        {
+            NavigationManager.NavigateTo("/student/dashboard");
+        }
+    }
+
+}

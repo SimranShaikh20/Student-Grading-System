@@ -1,0 +1,24 @@
+﻿@page "/logout"
+@inject NavigationManager NavigationManager
+@inject Project.Components.Services.CurrentUserServies CurrentUserServices
+
+<PageTitle>Logout</PageTitle>
+
+<h3>Logging out...</h3>
+
+@code {
+    private void LogoutUser()
+    {
+        CurrentUserServices.Email = null;
+        CurrentUserServices.Role = null;
+        CurrentUserServices.IsLoggedIn = false;
+        CurrentUserServices.IsStudentExist = false;
+        CurrentUserServices.IsFacultyExist = false;
+        CurrentUserServices.Logout();  // Call Logout to reset the state
+        StateHasChanged();  // Re-render after logout
+        NavigationManager.NavigateTo("/logindata/create", forceLoad: true);
+       
+    }
+
+
+}

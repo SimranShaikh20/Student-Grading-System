@@ -2,6 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Project.Data;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Project.Components.Services;
+
 
 namespace Project
 {
@@ -20,6 +23,18 @@ namespace Project
             // Add services to the container.
             builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents();
+            builder.Services.AddAuthentication("Cookies")
+    .AddCookie("Cookies", options =>
+    {
+        options.LoginPath = "/logindata/create"; // Login page
+        options.LogoutPath = "/logout"; // Logout page
+    });
+
+            builder.Services.AddAuthentication();
+            builder.Services.AddAuthorization();
+
+            builder.Services.AddScoped<CurrentUserServies>();
+            builder.Services.AddSingleton<CurrentUserServies>();
 
             var app = builder.Build();
 
@@ -33,12 +48,16 @@ namespace Project
             }
 
             app.UseHttpsRedirection();
+            app.UseAuthentication();
+            app.UseAuthorization(); 
 
             app.UseStaticFiles();
             app.UseAntiforgery();
 
             app.MapRazorComponents<App>()
                 .AddInteractiveServerRenderMode();
+            // Add this before building the app
+            System.Net.ServicePointManager.SecurityProtocol = System.Net.SecurityProtocolType.Tls12;
 
             app.Run();
         }

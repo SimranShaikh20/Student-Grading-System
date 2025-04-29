@@ -1,4 +1,6 @@
 ﻿@inherits LayoutComponentBase
+@inject NavigationManager NavigationManager
+@inject Project.Components.Services.CurrentUserServies CurrentUserServices
 
 <div class="page">
     <div class="sidebar">
@@ -6,8 +8,27 @@
     </div>
 
     <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+        <div class="top-row px-4 d-flex justify-content-between align-items-center" style="background-color: #0a192f; color: white; padding: 10px;">
+            <div>
+                <a href="https://learn.microsoft.com/aspnet/core/" target="_blank" class="about-link">About</a>
+            </div>
+
+            <div class="text-end">
+                @if (!string.IsNullOrEmpty(CurrentUserServices.Email))
+                {
+                    <span class="me-3">
+                        @if (CurrentUserServices.Role.Equals("Faculty", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <span>Welcome, Faculty: @CurrentUserServices.Email</span>
+                        }
+                        else
+                        {
+                            <span>Welcome, Student: @CurrentUserServices.Email</span>
+                        }
+                    </span>
+                    <button class="btn btn-danger btn-sm" @onclick="LogoutUser" href="/logout">Logout</button>
+                }
+            </div>
         </div>
 
         <article class="content px-4">
@@ -21,3 +42,19 @@
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
+
+@code {
+    private async Task LogoutUser()
+    {
+        try
+        {
+            CurrentUserServices.Logout();
+            await Task.Delay(100);
+            NavigationManager.NavigateTo("/logindata/create", true);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Logout Error: {ex.Message}");
+        }
+    }
+}

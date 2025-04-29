@@ -1,0 +1,166 @@
+﻿@page "/facultyregistrations/create"
+@using Microsoft.EntityFrameworkCore
+@using Project.Models
+@inject IDbContextFactory<Project.Data.ProjectContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<head>
+    <style>
+        /* Add the above CSS code here */
+        /* Custom styles for the Faculty Registration page */
+        .card-custom {
+            background-color: rgba(0, 0, 50, 0.8); /* Set the form background color */
+            border: 2px solid rgba(255, 255, 255, 0.1); /* Add a blue border to the form */
+            border-radius: 10px; /* Add rounded corners to the border */
+            padding: 20px;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .form-label {
+            font-weight: bold;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .btn-primary {
+            background-color: #007bff; /* Set button color to blue */
+            border-color: #007bff; /* Set button border to blue */
+        }
+
+        .btn-outline-secondary {
+            border-color: #6c757d; /* Set the border color for the secondary button */
+        }
+
+        .text-danger {
+            color: #dc3545 !important;
+        }
+
+        .alert {
+            margin-top: 20px;
+            padding: 10px;
+        }
+
+        .card-custom .form-control {
+            background-color: #ffffff; /* Set input background color */
+            border: 1px solid #ccc; /* Add a border to the input fields */
+        }
+
+            .card-custom .form-control:focus {
+                border-color: #007bff; /* Set the border color on focus */
+                box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); /* Add focus shadow */
+            }
+
+    </style>
+</head>
+<PageTitle>Create Faculty Registration</PageTitle>
+
+<h1 class="text-center mt-3"><i class="bi bi-person-badge-fill"></i> Faculty Registration</h1>
+
+<div class="d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+    <div class="card card-custom">
+        <div class="card-body">
+            <EditForm method="post" Model="FacultyRegistration" OnValidSubmit="AddFacultyRegistration" FormName="create" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary class="text-danger" role="alert" />
+
+                <!-- Full Name -->
+                <div class="mb-3">
+                    <label for="full_name" class="form-label">Full Name:</label>
+                    <InputText id="full_name" @bind-Value="FacultyRegistration.full_name" class="form-control" placeholder="Enter full name" />
+                    <ValidationMessage For="() => FacultyRegistration.full_name" class="text-danger" />
+                </div>
+
+                <!-- Department -->
+                <div class="mb-3">
+                    <label for="dep" class="form-label">Department:</label>
+                    <InputText id="dep" @bind-Value="FacultyRegistration.dep" class="form-control" placeholder="Enter department" />
+                    <ValidationMessage For="() => FacultyRegistration.dep" class="text-danger" />
+                </div>
+
+                <!-- Email -->
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email:</label>
+                    <InputText id="email" @bind-Value="FacultyRegistration.email" class="form-control" placeholder="Enter email address" />
+                    <ValidationMessage For="() => FacultyRegistration.email" class="text-danger" />
+                </div>
+
+                <!-- Password -->
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password:</label>
+                    <InputText id="password" @bind-Value="FacultyRegistration.password" class="form-control" type="password" placeholder="Enter password" />
+                    <ValidationMessage For="() => FacultyRegistration.password" class="text-danger" />
+                </div>
+
+                <!-- Role (TEXT input instead of select) -->
+                <div class="mb-3">
+                    <label for="role" class="form-label">Role:</label>
+                    <InputText id="role" @bind-Value="FacultyRegistration.role" class="form-control" placeholder="Enter role (e.g., faculty, admin)" />
+                    <ValidationMessage For="() => FacultyRegistration.role" class="text-danger" />
+                </div>
+
+                <!-- Submit Button -->
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Register</button>
+                    <a href="/faculty/dashboard" class="btn btn-outline-secondary ms-2"><i class="bi bi-arrow-left-circle"></i> Back to Dashboard</a>
+                </div>
+            </EditForm>
+
+            @if (!string.IsNullOrEmpty(SuccessMessage))
+            {
+                <div class="alert alert-success mt-3 text-center">
+                    <i class="bi bi-check-circle"></i> @SuccessMessage
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                <div class="alert alert-danger mt-3 text-center">
+                    <i class="bi bi-exclamation-circle"></i> @ErrorMessage
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private FacultyRegistration FacultyRegistration { get; set; } = new();
+    private string SuccessMessage { get; set; } = string.Empty;
+    private string ErrorMessage { get; set; } = string.Empty;
+
+    private async Task AddFacultyRegistration()
+    {
+        ErrorMessage = string.Empty;
+        SuccessMessage = string.Empty;
+
+        using var context = DbFactory.CreateDbContext();
+
+        // Check if the faculty already exists by email
+        var existingFaculty = await context.FacultyRegistration
+            .FirstOrDefaultAsync(f => f.email == FacultyRegistration.email);
+
+        if (existingFaculty != null)
+        {
+            // Faculty already exists, redirect to login
+            NavigationManager.NavigateTo("/logindata/create");
+            return;
+        }
+
+        // Optional: Normalize role to lowercase (good practice)
+        FacultyRegistration.role = FacultyRegistration.role?.Trim().ToLower();
+
+        context.FacultyRegistration.Add(FacultyRegistration);
+        await context.SaveChangesAsync();
+
+        SuccessMessage = "Faculty registered successfully!";
+        FacultyRegistration = new FacultyRegistration(); // Clear the form
+
+        // After successful registration, redirect to dashboard
+        NavigationManager.NavigateTo("/faculty/dashboard");
+    }
+}

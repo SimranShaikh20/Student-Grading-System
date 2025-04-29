@@ -1,0 +1,70 @@
+﻿@page "/submissions"
+@using Microsoft.EntityFrameworkCore
+@using Project.Models
+@inject IDbContextFactory<Project.Data.ProjectContext> DbFactory
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+
+<PageTitle>Submissions</PageTitle>
+
+<h1 class="text-center my-4">All Submissions</h1>
+<hr />
+
+@if (SubmissionsList == null)
+{
+    <p>Loading...</p>
+}
+else if (!SubmissionsList.Any())
+{
+    <p class="text-center text-muted">No submissions available yet.</p>
+}
+else
+{
+    <table class="table table-bordered text-light">
+        <thead class="table-dark">
+            <tr>
+                <th>Submitted By</th>   <!-- NEW COLUMN -->
+                <th>Subject Name</th>
+                <th>Submission Link</th>
+                <th>Submitted At</th>
+            </tr>
+        </thead>
+        <tbody class="bg-dark">
+            @foreach (var submission in SubmissionsList)
+            {
+                <tr class="table-row-custom">
+                    <td>@submission.SubmittedBy</td> <!-- Show SubmittedBy -->
+                    <td>@submission.SubjectName</td>
+                    <td>
+                        <a href="@submission.SubmissionLink" target="_blank" class="text-info">
+                            @submission.SubmissionLink
+                        </a>
+                    </td>
+                    <td>@submission.SubmittedAt.ToString("yyyy-MM-dd")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <div class="text-center mt-3">
+        <a href="/faculty/dashboard" class="btn btn-outline-secondary">Back to list</a>
+    </div>
+
+    <style>
+        /* Custom style to control hover */
+        .table-row-custom:hover {
+            background-color: #343a40; /* Keep dark on hover too */
+            color: #ffffff; /* Keep text light */
+        }
+    </style>
+}
+
+@code {
+    private List<Submission> SubmissionsList;
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        SubmissionsList = await context.Submission.ToListAsync();
+    }
+}

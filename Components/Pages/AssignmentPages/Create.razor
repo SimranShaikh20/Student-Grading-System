@@ -1,0 +1,153 @@
+﻿@page "/assignments/create"
+@using Microsoft.EntityFrameworkCore
+@using Project.Models
+@inject IDbContextFactory<Project.Data.ProjectContext> DbFactory
+@inject NavigationManager NavigationManager
+@inject Project.Components.Services.CurrentUserServies CurrentUserServices
+
+<style>
+    /* Custom styles for the Assignments page */
+    .card-custom {
+        background-color: rgba(0, 0, 50, 0.9); /* Set the form background color to match the page's theme */
+        border: 2px solid rgba(255, 255, 255, 0.1); /* Add a subtle border to the form */
+        border-radius: 10px; /* Rounded corners */
+        padding: 20px;
+    }
+
+    .card-body {
+        padding: 20px;
+    }
+
+    .form-label {
+        font-weight: bold;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .btn-primary {
+        background-color: #007bff; /* Set the button color to blue */
+        border-color: #007bff; /* Set the border color to match */
+    }
+
+    .btn-outline-secondary {
+        border-color: #6c757d; /* Set the border color for the secondary button */
+    }
+
+    .text-danger {
+        color: #dc3545 !important;
+    }
+
+    .alert {
+        margin-top: 20px;
+        padding: 10px;
+    }
+
+    .card-custom .form-control {
+        background-color: #ffffff; /* White background for input fields */
+        border: 1px solid #ccc; /* Light border for inputs */
+    }
+
+        .card-custom .form-control:focus {
+            border-color: #007bff; /* Blue border on focus */
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); /* Focus shadow effect */
+        }
+
+    .alert-custom {
+        background-color: #28a745; /* Success alert background color */
+        color: white; /* White text for success messages */
+    }
+</style>
+
+
+<div class="d-flex justify-content-center mt-4">
+    <div class="card card-custom">
+        <div class="card-body">
+            <h2 class="text-center"><i class="bi bi-pencil-square"></i> Assignment</h2>
+            <hr />
+            <EditForm method="post" Model="Assignment" OnValidSubmit="AddAssignment" FormName="create" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary class="text-danger" role="alert" />
+
+                <div class="mb-3">
+                    <label for="title" class="form-label"><i class="bi bi-card-text"></i> Title:</label>
+                    <InputText id="title" @bind-Value="Assignment.Title" class="form-control" placeholder="Enter Assignment Title" />
+                    <ValidationMessage For="() => Assignment.Title" class="text-danger" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label"><i class="bi bi-file-text"></i> Description:</label>
+                    <InputText id="description" @bind-Value="Assignment.Description" class="form-control" placeholder="Enter Assignment Description" />
+                    <ValidationMessage For="() => Assignment.Description" class="text-danger" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="filetype" class="form-label"><i class="bi bi-file-earmark"></i> File Type:</label>
+                    <InputText id="filetype" @bind-Value="Assignment.FileType" class="form-control" placeholder="Enter File Type (e.g., PDF, DOCX)" />
+                    <ValidationMessage For="() => Assignment.FileType" class="text-danger" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="facultyid" class="form-label"><i class="bi bi-person-badge"></i> Faculty ID:</label>
+                    <InputText id="facultyid" @bind-Value="Assignment.FacultyId" class="form-control" placeholder="Enter Faculty ID" />
+                    <ValidationMessage For="() => Assignment.FacultyId" class="text-danger" />
+                </div>
+
+                <!-- Automatically populate Faculty Name from the logged-in user -->
+                <div class="mb-3">
+                    <label for="facultyname" class="form-label"><i class="bi bi-person"></i> Faculty Name:</label>
+                    <InputText id="facultyname" @bind-Value="Assignment.Facultyname" class="form-control" placeholder="Faculty Name" Disabled />
+                    <ValidationMessage For="() => Assignment.Facultyname" class="text-danger" />
+                </div>
+
+                <div class="mb-3">
+                    <label for="deadline" class="form-label"><i class="bi bi-calendar-event"></i> Deadline:</label>
+                    <InputDate id="deadline" @bind-Value="Assignment.Deadline" class="form-control" />
+                    <ValidationMessage For="() => Assignment.Deadline" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="maxmarks" class="form-label"><i class="bi bi-123"></i> Max Marks:</label>
+                    <InputNumber id="maxmarks" @bind-Value="Assignment.maxmarks" class="form-control" placeholder="Enter Maximum Marks" />
+                    <ValidationMessage For="() => Assignment.maxmarks" class="text-danger" />
+                </div>
+
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Create</button>
+                    <a href="/submissions" class="btn btn-secondary ms-2"><i class="bi bi-arrow-left-circle"></i> Back to List of Submit Assignment </a>
+                </div>
+            </EditForm>
+
+            @if (!string.IsNullOrEmpty(SuccessMessage))
+            {
+                <div class="alert alert-custom mt-3 text-center">
+                    <i class="bi bi-check-circle"></i> @SuccessMessage
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private Assignment Assignment { get; set; } = new();
+    private string SuccessMessage { get; set; } = string.Empty;
+
+    // protected override void OnInitialized()
+    // {
+        
+    //     if (CurrentUserServices.Role.Equals("Faculty", StringComparison.OrdinalIgnoreCase))
+    //     {
+    //         Assignment.Facultyname = CurrentUserServices.full_name; Replace `UserName` with the actual property that holds the faculty's name
+    //     }
+    // }
+
+    private async Task AddAssignment()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Assignments.Add(Assignment);
+        await context.SaveChangesAsync();
+        SuccessMessage = "Assignment has been successfully created!";
+        Assignment = new Assignment(); // Reset the form
+    }
+}
